@@ -1,0 +1,22 @@
+{
+  "name": "Blank Street Count",
+  "short_name": "BS Count",
+  "description": "Inventory counting tool for Blank Street Coffee",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#4A6741",
+  "background_color": "#F0EDE8",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

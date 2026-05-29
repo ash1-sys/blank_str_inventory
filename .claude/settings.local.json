@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"C:\\\\Users\\\\chiya\\\\Projects\\\\blank_str_inventory\"; npx create-vite@latest . --template react 2>&1; echo \"EXIT: $LASTEXITCODE\")"
+    ]
+  }
+}
