@@ -1,9 +1,5 @@
-const CACHE_NAME = 'bs-count-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-];
+const CACHE_NAME = 'bs-count-v2';
+const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -22,6 +18,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Never cache JS/CSS assets — always fetch fresh so new deploys aren't blocked
+  const url = new URL(event.request.url);
+  if (url.pathname.startsWith('/assets/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
