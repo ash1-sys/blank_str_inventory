@@ -3,14 +3,17 @@ import { ITEMS } from '../data/items'
 
 const STORAGE_KEY = 'bs-inventory-session'
 
+const defaultOrder = ITEMS.map(item => item.id)
+
 const initialSession = {
-  screen: 'start',      // 'start' | 'count' | 'review' | 'success'
+  screen: 'start',
   currentIndex: 0,
   counts: {},           // { [itemId]: number | null }  null = skipped
   notes: {},            // { [itemId]: string }
+  itemOrder: defaultOrder,
   startedAt: null,
   submittedAt: null,
-  direction: 'forward', // for transition hint
+  direction: 'forward',
 }
 
 function load() {
@@ -25,6 +28,14 @@ function save(state) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   } catch { /* ignore */ }
+}
+
+function moveItem(order, index, direction) {
+  const next = [...order]
+  const swapWith = index + direction
+  if (swapWith < 0 || swapWith >= next.length) return order
+  ;[next[index], next[swapWith]] = [next[swapWith], next[index]]
+  return next
 }
 
 function reducer(state, action) {
@@ -49,7 +60,7 @@ function reducer(state, action) {
 
     case 'NEXT': {
       const next = state.currentIndex + 1
-      if (next >= ITEMS.length) {
+      if (next >= state.itemOrder.length) {
         return { ...state, screen: 'review', direction: 'forward' }
       }
       return { ...state, currentIndex: next, direction: 'forward' }
@@ -68,6 +79,15 @@ function reducer(state, action) {
     case 'SUBMIT':
       return { ...state, screen: 'success', submittedAt: Date.now(), direction: 'forward' }
 
+    case 'REORDER_UP':
+      return { ...state, itemOrder: moveItem(state.itemOrder, action.index, -1) }
+
+    case 'REORDER_DOWN':
+      return { ...state, itemOrder: moveItem(state.itemOrder, action.index, 1) }
+
+    case 'REORDER_RESET':
+      return { ...state, itemOrder: defaultOrder }
+
     case 'RESET':
       localStorage.removeItem(STORAGE_KEY)
       return initialSession
@@ -82,14 +102,15 @@ const AppContext = createContext(null)
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, load)
 
-  useEffect(() => {
-    if (state.screen !== 'start') {
-      save(state)
-    }
-  }, [state])
+  // Always persist — itemOrder should survive across sessions
+  useEffect(() => { save(state) }, [state])
+
+  // Derive items sorted by current order
+  const itemMap = Object.fromEntries(ITEMS.map(item => [item.id, item]))
+  const items = state.itemOrder.map(id => itemMap[id]).filter(Boolean)
 
   return (
-    <AppContext.Provider value={{ state, dispatch, items: ITEMS }}>
+    <AppContext.Provider value={{ state, dispatch, items }}>
       {children}
     </AppContext.Provider>
   )
